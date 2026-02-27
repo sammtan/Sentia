@@ -1,0 +1,370 @@
+// ============================================================
+//  Sentium Architecture Diagram
+//  Samuel Tanaka — Universitas Indonesia, February 2026
+//
+//  Render with:
+//    dot -Tpng sentium_arch.dot -o sentium_arch.png -Gdpi=150
+//    dot -Tsvg sentium_arch.dot -o sentium_arch.svg
+//    dot -Tpdf sentium_arch.dot -o sentium_arch.pdf
+// ============================================================
+
+digraph Sentium {
+
+    // ── Global layout ──────────────────────────────────────
+    rankdir=TB
+    splines=polyline
+    nodesep=0.55
+    ranksep=0.65
+    fontname="Inter"
+    fontsize=12
+    bgcolor="white"
+
+    // ── Node style defaults ────────────────────────────────
+    node [
+        fontname="Inter"
+        fontsize=11
+        style="filled,rounded"
+        penwidth=1.4
+        height=0.45
+        margin="0.18,0.10"
+    ]
+
+    edge [
+        fontname="Inter"
+        fontsize=9
+        penwidth=1.2
+        arrowsize=0.7
+    ]
+
+    // ──────────────────────────────────────────────────────
+    //  TOP-LEVEL INPUT
+    // ──────────────────────────────────────────────────────
+
+    INPUT [
+        label="Token Sequence\n x = (x₁ … xₙ)"
+        shape=parallelogram
+        fillcolor="#E8F5E9"
+        color="#388E3C"
+    ]
+
+    // ──────────────────────────────────────────────────────
+    //  PILLAR 1: GEOMETRIC MEMORY MANIFOLD
+    // ──────────────────────────────────────────────────────
+
+    subgraph cluster_geom {
+        label="① Geometric Memory Manifold"
+        style="filled,rounded"
+        fillcolor="#FFF8E1"
+        color="#F9A825"
+        penwidth=1.8
+        fontsize=12
+        fontcolor="#F57F17"
+
+        EMBED_E [
+            label="Euclidean\nEmbedding\n ℝ^{d_e}"
+            shape=box
+            fillcolor="#FFF9C4"
+            color="#F9A825"
+        ]
+        EMBED_H [
+            label="Hyperbolic\nEmbedding\n 𝔹^{d_h}\n(Poincaré ball)"
+            shape=box
+            fillcolor="#FFF9C4"
+            color="#F9A825"
+        ]
+        EMBED_G [
+            label="Graph\nEmbedding\n 𝒢\n(GNN layer)"
+            shape=box
+            fillcolor="#FFF9C4"
+            color="#F9A825"
+        ]
+
+        GEOM_FUSE [
+            label="Manifold Fusion\n h = W₁h_E + W₂h_H + W₃h_G"
+            shape=box
+            fillcolor="#FFE082"
+            color="#F9A825"
+            width=3.0
+        ]
+
+        ROPE [
+            label="RoPE\n(Rotary Position Encoding)"
+            shape=box
+            fillcolor="#FFE082"
+            color="#F9A825"
+        ]
+    }
+
+    // ──────────────────────────────────────────────────────
+    //  SENTIUM LAYER  (repeated × L)
+    // ──────────────────────────────────────────────────────
+
+    subgraph cluster_layer {
+        label="SentiumLayer  ×L  (pre-norm, residual)"
+        style="filled,rounded"
+        fillcolor="#F3F4FE"
+        color="#3949AB"
+        penwidth=1.8
+        fontsize=12
+        fontcolor="#1A237E"
+
+        RMSNORM1 [
+            label="RMSNorm"
+            shape=ellipse
+            fillcolor="#C5CAE9"
+            color="#3949AB"
+        ]
+
+        // ── Pillar 2: Integral Operator Attention ──────
+        subgraph cluster_attn {
+            label="② Integral Operator Attention"
+            style="filled,rounded"
+            fillcolor="#E8EAF6"
+            color="#5C6BC0"
+            fontcolor="#283593"
+            fontsize=11
+
+            QKV [
+                label="Q / K / V\nProjections\n(GQA)"
+                shape=box
+                fillcolor="#C5CAE9"
+                color="#5C6BC0"
+            ]
+            NYSTROM [
+                label="Nyström Approx.\n m≪n landmarks\nÂ = Q'(K')⁺Kᵀ\nO(n log n)"
+                shape=box
+                fillcolor="#9FA8DA"
+                color="#3949AB"
+                width=2.6
+            ]
+            SCHULZ [
+                label="Schulz Iterations\n(Moore-Penrose K⁺)"
+                shape=box
+                fillcolor="#C5CAE9"
+                color="#5C6BC0"
+            ]
+            MHA_FALLBACK [
+                label="Standard MHA\n(fallback n≤1024)"
+                shape=box
+                fillcolor="#E8EAF6"
+                color="#9FA8DA"
+                style="filled,rounded,dashed"
+            ]
+            ATTN_OUT [
+                label="Attention\nOutput"
+                shape=box
+                fillcolor="#C5CAE9"
+                color="#5C6BC0"
+            ]
+        }
+
+        RESID1 [
+            label="＋\n(residual)"
+            shape=circle
+            fillcolor="#FFFFFF"
+            color="#3949AB"
+            width=0.45
+            height=0.45
+        ]
+
+        RMSNORM2 [
+            label="RMSNorm"
+            shape=ellipse
+            fillcolor="#C5CAE9"
+            color="#3949AB"
+        ]
+
+        // ── Pillar 3: OT-MoE FFN ──────────────────────
+        subgraph cluster_moe {
+            label="③ OT-MoE  (Optimal Transport Routing)"
+            style="filled,rounded"
+            fillcolor="#FCE4EC"
+            color="#C62828"
+            fontcolor="#B71C1C"
+            fontsize=11
+
+            OT_COST [
+                label="Transport Cost\n c_ij = −⟨hᵢ,eⱼ⟩/τ + λ·load(j)"
+                shape=box
+                fillcolor="#FFCDD2"
+                color="#C62828"
+                width=3.0
+            ]
+            SINKHORN [
+                label="Sinkhorn Iterations\n π* = argmin Σc_ijπ_ij + εH(π)\n(doubly stochastic plan)"
+                shape=box
+                fillcolor="#EF9A9A"
+                color="#C62828"
+                width=3.2
+            ]
+            EXPERTS [
+                label="Expert FFNs\n(SwiGLU × E)\n FFN(x)=W_down(SiLU(W_gate·x)⊙W_up·x)"
+                shape=box
+                fillcolor="#FFCDD2"
+                color="#C62828"
+                width=3.4
+            ]
+            AUX_LOSS [
+                label="Aux Balance Loss\n ℒ_aux = αE Σf_j·P_j"
+                shape=diamond
+                fillcolor="#FFCDD2"
+                color="#C62828"
+                style="filled,dashed"
+            ]
+            MOE_OUT [
+                label="MoE\nOutput"
+                shape=box
+                fillcolor="#FFCDD2"
+                color="#C62828"
+            ]
+        }
+
+        RESID2 [
+            label="＋\n(residual)"
+            shape=circle
+            fillcolor="#FFFFFF"
+            color="#3949AB"
+            width=0.45
+            height=0.45
+        ]
+
+        // ── Pillar 4: Adaptive Stochastic Depth ───────
+        subgraph cluster_sde {
+            label="④ Adaptive Stochastic Depth  (SDE DropPath)"
+            style="filled,rounded"
+            fillcolor="#E8F5E9"
+            color="#2E7D32"
+            fontcolor="#1B5E20"
+            fontsize=11
+
+            SDE_GATE [
+                label="DropPath Gate\n p_ℓ = 1 − (ℓ/L)·(1−p_min)"
+                shape=box
+                fillcolor="#A5D6A7"
+                color="#2E7D32"
+                width=2.8
+            ]
+            SDE_NOISE [
+                label="Diffusion Term\n g_φ(h,t)·√Δt·ξ\n(zeroed at inference)"
+                shape=box
+                fillcolor="#C8E6C9"
+                color="#2E7D32"
+                style="filled,dashed"
+            ]
+        }
+    }
+
+    // ──────────────────────────────────────────────────────
+    //  FINAL NORM + LM HEAD
+    // ──────────────────────────────────────────────────────
+
+    RMSNORM_F [
+        label="RMSNorm (final)"
+        shape=ellipse
+        fillcolor="#B2DFDB"
+        color="#00695C"
+    ]
+
+    LM_HEAD [
+        label="LM Head\n(Linear → Vocab)"
+        shape=box
+        fillcolor="#80CBC4"
+        color="#00695C"
+        penwidth=2.0
+    ]
+
+    OUTPUT [
+        label="Logits  ŷ ∈ ℝ^{|V|}"
+        shape=parallelogram
+        fillcolor="#E0F2F1"
+        color="#00695C"
+    ]
+
+    // ──────────────────────────────────────────────────────
+    //  TRAINING INFRA (side annotations)
+    // ──────────────────────────────────────────────────────
+
+    subgraph cluster_train {
+        label="⑤ Hardware-Co-Designed Execution"
+        style="filled,rounded"
+        fillcolor="#F9FBE7"
+        color="#558B2F"
+        fontcolor="#33691E"
+        fontsize=11
+        rank=sink
+
+        HW1 [label="BF16 AMP\n(auto mixed precision)"   shape=note fillcolor="#F0F4C3" color="#558B2F"]
+        HW2 [label="Gradient Checkpointing\nO(√L d) memory" shape=note fillcolor="#F0F4C3" color="#558B2F"]
+        HW3 [label="Grad Accumulation\n(virtual large batch)" shape=note fillcolor="#F0F4C3" color="#558B2F"]
+        HW4 [label="Context Curriculum\n128 → 4096 tokens"   shape=note fillcolor="#F0F4C3" color="#558B2F"]
+        HW5 [label="KV-Cache Compression\n(Phase 1+)"        shape=note fillcolor="#DCEDC8" color="#558B2F" style="filled,dashed,rounded"]
+    }
+
+    LOSS_TOTAL [
+        label="Total Loss\n ℒ = ℒ_LM + α·ℒ_aux"
+        shape=diamond
+        fillcolor="#FFF9C4"
+        color="#F57F17"
+        penwidth=1.8
+    ]
+
+    // ──────────────────────────────────────────────────────
+    //  EDGES — Main forward pass
+    // ──────────────────────────────────────────────────────
+
+    INPUT -> EMBED_E
+    INPUT -> EMBED_H [style=dashed label=" Phase 1+"]
+    INPUT -> EMBED_G [style=dashed label=" Phase 1+"]
+
+    EMBED_E -> GEOM_FUSE
+    EMBED_H -> GEOM_FUSE [style=dashed]
+    EMBED_G -> GEOM_FUSE [style=dashed]
+
+    GEOM_FUSE -> ROPE
+    ROPE     -> RMSNORM1   [label=" H⁽⁰⁾"]
+
+    // Attention path
+    RMSNORM1 -> QKV
+    QKV      -> NYSTROM
+    QKV      -> MHA_FALLBACK [style=dashed label=" short-ctx fallback"]
+    NYSTROM  -> SCHULZ
+    SCHULZ   -> ATTN_OUT
+    MHA_FALLBACK -> ATTN_OUT [style=dashed]
+    ATTN_OUT -> RESID1
+
+    // Residual add after attention
+    RMSNORM1 -> RESID1 [style=dotted color="#888888" label=" skip"]
+    RESID1   -> RMSNORM2
+
+    // MoE path
+    RMSNORM2 -> OT_COST
+    OT_COST  -> SINKHORN
+    SINKHORN -> EXPERTS
+    EXPERTS  -> MOE_OUT
+    EXPERTS  -> AUX_LOSS [style=dashed arrowhead=none]
+    MOE_OUT  -> RESID2
+
+    // Residual add after MoE
+    RMSNORM2 -> RESID2 [style=dotted color="#888888" label=" skip"]
+    RESID2   -> SDE_GATE
+
+    // SDE DropPath
+    SDE_GATE -> SDE_NOISE [style=dashed]
+    SDE_GATE -> RMSNORM1  [label=" repeat ×L" style=dashed color="#3949AB" constraint=false fontcolor="#3949AB"]
+
+    // Final layers
+    SDE_GATE  -> RMSNORM_F
+    RMSNORM_F -> LM_HEAD
+    LM_HEAD   -> OUTPUT
+
+    // Loss aggregation
+    OUTPUT   -> LOSS_TOTAL [style=dashed label=" ℒ_LM"]
+    AUX_LOSS -> LOSS_TOTAL [style=dashed label=" ℒ_aux"]
+
+    // HW annotations (no arrowheads)
+    RESID2  -> HW1 [style=invis]
+    RESID2  -> HW2 [style=invis]
+    RESID2  -> HW3 [style=invis]
+    ROPE    -> HW4 [style=invis]
+    LM_HEAD -> HW5 [style=invis]
+}

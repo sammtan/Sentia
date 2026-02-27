@@ -1,0 +1,74 @@
+# ── Python ────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ── Virtual environments ───────────────────────────────────────────────────
+.venv/
+.venv312/
+venv/
+env/
+ENV/
+.conda/
+
+# ── PyTest / coverage ─────────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# ── Training artefacts ────────────────────────────────────────────────────
+checkpoints/
+ckpt_test/
+ckpt_verify/
+runs/
+wandb/
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+
+# ── Datasets (large — store on Drive, not git) ────────────────────────────
+data/
+datasets_cache/
+*.arrow
+*.parquet
+*.bin
+*.idx
+
+# ── Jupyter ───────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ── IDE / OS ──────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── LaTeX build artefacts ─────────────────────────────────────────────────
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.log
+paper/*.out
+paper/*.toc
+paper/*.fls
+paper/*.fdb_latexmk
+paper/*.synctex.gz
+# Keep the compiled PDF but not intermediate files
+# paper/*.pdf   ← intentionally NOT ignored (we want the PDF in git)
+
+# ── Misc ──────────────────────────────────────────────────────────────────
+*.log
+*.tmp
+*.bak
+_verify_oom_fix.py
