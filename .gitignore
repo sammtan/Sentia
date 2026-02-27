@@ -67,6 +67,25 @@ paper/*.synctex.gz
 # Keep the compiled PDF but not intermediate files
 # paper/*.pdf   ← intentionally NOT ignored (we want the PDF in git)
 
+# ── Paper build artefacts (generated from source .dot / .tex) ────────────
+paper/sentium_arch.svg
+paper/sentium_arch.png
+paper/sentium_arch.pdf
+# Compiled paper PDF — large binary; rebuild with paper/build.bat
+# Comment this out if you DO want to distribute the PDF via git
+paper/sentium.pdf
+
+# ── Personal notes / brainstorm docs (not part of the codebase) ──────────
+Project Sentium Brainstorm*.md
+Project Sentium Brainstorm*.txt
+
+# ── Office / binary documents ─────────────────────────────────────────────
+*.docx
+*.xlsx
+*.pptx
+# Keep the architecture paper .tex/.bib (source) — ignore compiled binaries
+Modifikasi Arsitektur Transformer.*
+
 # ── Misc ──────────────────────────────────────────────────────────────────
 *.log
 *.tmp
