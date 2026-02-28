@@ -173,7 +173,8 @@ class HFTextDataset(IterableDataset):
     """
     Wraps a HuggingFace streaming dataset into fixed-length token chunks.
 
-    Supports: 'slim_pajama', 'the_pile', 'openwebtext', 'wikitext', or any
+    Supports: 'slim_pajama' (DKYoon/SlimPajama-6B), 'the_pile' (monology/pile-uncopyrighted),
+    'openwebtext', 'wikitext', or any
     HuggingFace dataset id (pass as --dataset).
 
     Tokens are produced by a GPT-2 tokenizer by default (fast, widely available).
@@ -181,10 +182,12 @@ class HFTextDataset(IterableDataset):
     """
 
     _DATASET_MAP = {
-        "slim_pajama": ("cerebras/SlimPajama-627B", "train", {"streaming": True}),
-        "the_pile":    ("EleutherAI/pile",           "train", {"streaming": True, "trust_remote_code": True}),
-        "openwebtext": ("Skylion007/openwebtext",     "train", {"streaming": True}),
-        "wikitext":    ("wikitext",                  "train", {"name": "wikitext-103-raw-v1"}),
+        # slim_pajama: ~6B-token sample of SlimPajama-627B (cerebras original removed from Hub)
+        "slim_pajama": ("DKYoon/SlimPajama-6B",         "train", {"streaming": True}),
+        # the_pile: uncopyrighted subset (~800 GB); full EleutherAI/pile requires gated access
+        "the_pile":    ("monology/pile-uncopyrighted",   "train", {"streaming": True}),
+        "openwebtext": ("Skylion007/openwebtext",         "train", {"streaming": True}),
+        "wikitext":    ("wikitext",                      "train", {"name": "wikitext-103-raw-v1"}),
     }
 
     def __init__(
@@ -280,7 +283,7 @@ def main() -> None:
     # Dataset
     parser.add_argument("--dataset",      default="slim_pajama",
                         help="Dataset alias or HuggingFace id "
-                             "(slim_pajama | the_pile | openwebtext | wikitext | <hf-id>)")
+                             "(slim_pajama=DKYoon/SlimPajama-6B | the_pile=monology/pile-uncopyrighted | openwebtext | wikitext | <hf-id>)")
     parser.add_argument("--tokenizer",    default="gpt2",
                         help="HuggingFace tokenizer name (default: gpt2)")
     parser.add_argument("--max-samples",  type=int, default=None,
